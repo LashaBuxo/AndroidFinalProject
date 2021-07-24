@@ -1,9 +1,10 @@
-package ge.lbukhnikashvili.androidfinalproject
+package ge.lbukhnikashvili.androidfinalproject.Adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import ge.lbukhnikashvili.androidfinalproject.R
 
 class DemoAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

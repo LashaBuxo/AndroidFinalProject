@@ -10,27 +10,26 @@ import android.view.View
 import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doAfterTextChanged
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import ge.lbukhnikashvili.androidfinalproject.Adapters.SearchPageAdapter
+import ge.lbukhnikashvili.androidfinalproject.DataClasses.UserInfo
+import ge.lbukhnikashvili.androidfinalproject.MVP.IMainView
+import ge.lbukhnikashvili.androidfinalproject.MVP.MainPresenter
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), IMainView {
     private lateinit var auth: FirebaseAuth
     private var currentUser: FirebaseUser? = null
+
+    private lateinit var presenter: MainPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);//will hide the title
@@ -38,43 +37,41 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
-        findViewById<View>(R.id.enter_page_layout).visibility = View.VISIBLE
-        findViewById<View>(R.id.register_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.profile_page_layout).visibility = View.INVISIBLE
-        auth = Firebase.auth
-
-        //findViewById<RecyclerView>(R.id.conversation_thumbnail_items).adapter = DemoAdapter()
+        showLayout(PageType.Loading)
     }
 
     override fun onStart() {
         super.onStart()
+        auth = Firebase.auth
         currentUser = auth.currentUser
+
         if (currentUser != null) {
             userSignedInSuccessfully()
         } else {
+            showLayout(PageType.Enter)
             Log.e("Lasha", "Current user is NOT signed in!")
         }
+
+        presenter = MainPresenter(this)
+        presenter.initDatabase(application, this)
     }
 
     fun onClickSignUpPage(v: View) {
-        findViewById<View>(R.id.enter_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.register_page_layout).visibility = View.VISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.profile_page_layout).visibility = View.INVISIBLE
+        showLayout(PageType.Register)
     }
-    fun onClickProfilePage(v: MenuItem):Boolean {
-        findViewById<View>(R.id.enter_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.register_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.profile_page_layout).visibility = View.VISIBLE
+
+    fun onClickProfilePage(v: MenuItem): Boolean {
+        showLayout(PageType.Profile)
         return true;
     }
-    fun onClickMainPage(v: MenuItem):Boolean {
-        findViewById<View>(R.id.enter_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.register_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.VISIBLE
-        findViewById<View>(R.id.profile_page_layout).visibility = View.INVISIBLE
+
+    fun onClickActionButton(v: View) {
+        showLayout(PageType.Loading)
+        presenter.requestUsersBriefInfo()
+    }
+
+    fun onClickMainPage(v: MenuItem): Boolean {
+        showLayout(PageType.Main)
         return true;
     }
 
@@ -98,12 +95,13 @@ class MainActivity : AppCompatActivity() {
         registerUser(nicknameText.text.toString(), passwordText.text.toString())
     }
 
-    private fun logoutUser(){
+    private fun onClickSearchItem(uid: String){
+        Log.e("Lasha","Clicked on user with uid="+uid)
+    }
+
+    private fun logoutUser() {
         Firebase.auth.signOut()
-        findViewById<View>(R.id.enter_page_layout).visibility = View.VISIBLE
-        findViewById<View>(R.id.register_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.profile_page_layout).visibility = View.INVISIBLE
+        showLayout(PageType.Enter)
     }
 
     private fun loginUser(username: String, password: String) {
@@ -131,6 +129,9 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Log.d("Lasha", "createUserWithEmail:success")
                     currentUser = auth.currentUser
+                    val profession =
+                        findViewById<EditText>(R.id.register_page_profession).text.toString()
+                    presenter.addUser(currentUser!!.uid, username, profession, "")
                     userSignedInSuccessfully();
                 } else {
                     Log.w("Lasha", "createUserWithEmail:failure", task.exception)
@@ -142,11 +143,44 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+
+    override fun usersBriefInfoReceived(data: MutableList<UserInfo>) {
+        val adapter = SearchPageAdapter(data)
+        var recycler = findViewById<RecyclerView>(R.id.search_items)
+        recycler.adapter = adapter
+        recycler.layoutManager = GridLayoutManager(baseContext, GridLayoutManager.VERTICAL)
+        adapter.onItemClick = { uid -> onClickSearchItem(uid) }
+
+        showLayout(PageType.Search)
+    }
+
     private fun userSignedInSuccessfully() {
         Log.e("Lasha", "Current user is signed in!")
+        showLayout(PageType.Main)
+    }
+
+    enum class PageType {
+        Loading,Enter,Register,Main,Profile,Search,Conversation
+    }
+
+    private fun showLayout(page: PageType){
+        findViewById<View>(R.id.loading_layout).visibility = View.INVISIBLE
         findViewById<View>(R.id.enter_page_layout).visibility = View.INVISIBLE
         findViewById<View>(R.id.register_page_layout).visibility = View.INVISIBLE
-        findViewById<View>(R.id.main_page_layout).visibility = View.VISIBLE
+        findViewById<View>(R.id.main_page_layout).visibility = View.INVISIBLE
+        findViewById<View>(R.id.profile_page_layout).visibility = View.INVISIBLE
+        findViewById<View>(R.id.search_page_layout).visibility = View.INVISIBLE
+        findViewById<View>(R.id.conversation_page_layout).visibility = View.INVISIBLE
+
+        when (page) {
+            PageType.Loading -> findViewById<View>(R.id.loading_layout).visibility = View.VISIBLE
+            PageType.Enter -> findViewById<View>(R.id.enter_page_layout).visibility = View.VISIBLE
+            PageType.Register -> findViewById<View>(R.id.register_page_layout).visibility = View.VISIBLE
+            PageType.Main -> findViewById<View>(R.id.main_page_layout).visibility = View.VISIBLE
+            PageType.Profile -> findViewById<View>(R.id.profile_page_layout).visibility = View.VISIBLE
+            PageType.Search -> findViewById<View>(R.id.search_page_layout).visibility = View.VISIBLE
+            PageType.Conversation ->  findViewById<View>(R.id.conversation_page_layout).visibility = View.VISIBLE
+        }
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {

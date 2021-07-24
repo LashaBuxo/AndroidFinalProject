@@ -7,6 +7,12 @@
     tools:context=".MainActivity">
 
     <include
+        android:id="@+id/loading_layout"
+        layout="@layout/loading"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"></include>
+
+    <include
         android:id="@+id/enter_page_layout"
         layout="@layout/enter_page"
         android:layout_width="fill_parent"
@@ -27,6 +33,18 @@
     <include
         android:id="@+id/profile_page_layout"
         layout="@layout/profile_page"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"></include>
+
+    <include
+        android:id="@+id/search_page_layout"
+        layout="@layout/search_page"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"></include>
+
+    <include
+        android:id="@+id/conversation_page_layout"
+        layout="@layout/conversation_page"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"></include>
 </FrameLayout>
