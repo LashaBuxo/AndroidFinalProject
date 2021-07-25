@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/conversation_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/blue"
         android:padding="20dp"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="@color/blue">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/conversation_page_back"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:onClick="onClickSearchPageBack"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="10dp"
-            android:layout_gravity="center"
             app:srcCompat="@drawable/ic_baseline_arrow_back_ios_24"
             tools:ignore="VectorDrawableCompat" />
 
@@ -27,45 +29,80 @@
             android:id="@+id/conversation_page_identity_texts"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:orientation="vertical"
             android:layout_marginLeft="20dp"
-            app:layout_constraintRight_toLeftOf="@id/search_page_item_icon"
+            android:orientation="vertical"
             app:layout_constraintLeft_toRightOf="@id/conversation_page_back"
-            >
+            app:layout_constraintRight_toLeftOf="@id/conversation_page_item_icon">
+
             <TextView
                 android:id="@+id/conversation_page_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
                 android:maxLines="1"
-                android:textStyle="bold"
-                android:text="Lasha Bukhnikashvili"></TextView>
+                android:text="Lasha Bukhnikashvili"
+                android:textSize="18sp"
+                android:textStyle="bold"></TextView>
+
             <TextView
                 android:id="@+id/conversation_page_profession"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
                 android:maxLines="2"
-                android:text="Manager"></TextView>
+                android:text="Manager"
+                android:textSize="15sp"></TextView>
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/search_page_item_icon"
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/conversation_page_item_icon"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            app:srcCompat="@drawable/avatar_image_placeholder"
-            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/avatar_image_placeholder"
+            app:civ_border_color="#FF000000"
+            app:civ_border_width="1dp"
+            app:layout_constraintLeft_toRightOf="@id/conversation_page_identity_texts"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toRightOf="@id/conversation_page_identity_texts"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/conversation_items"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/conversation_header"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/message_bar"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+        app:layout_constraintTop_toBottomOf="@id/conversation_header" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/message_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_rectangle"
+        android:backgroundTint="@color/soft_white"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <EditText
+            android:id="@+id/conversation_typed_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:hint="Message"
+            android:textColor="@color/black"
+            android:textSize="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/conversation_send_icon">
+        </EditText>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/conversation_send_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="15dp"
+            android:src="@color/dark_blue"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"></de.hdodenhof.circleimageview.CircleImageView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

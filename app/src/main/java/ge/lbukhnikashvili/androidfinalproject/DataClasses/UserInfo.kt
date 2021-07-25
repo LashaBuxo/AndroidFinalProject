@@ -8,7 +8,7 @@ data class UserInfo(
     var uid: String? ="",
     var name: String? = "",
     var profession: String? = "",
-    var icon64: String? = "",
+    var image_url: String? = "",
 ) {
 
     @Exclude
@@ -17,7 +17,7 @@ data class UserInfo(
             "uid" to uid,
             "name" to name,
             "profession" to profession,
-            "icon64" to icon64,
+            "image_url" to image_url,
         )
     }
 }

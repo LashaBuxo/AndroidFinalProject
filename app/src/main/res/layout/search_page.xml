@@ -13,6 +13,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:background="@color/blue">
         <ImageView
+            android:onClick="onClickSearchPageBack"
             android:id="@+id/user_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"

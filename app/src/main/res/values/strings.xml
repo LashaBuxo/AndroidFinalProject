@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">AndroidFinalProject</string>
-    <string name="description_text">
-        Grevillea juniperina, the prickly spider-flower, is a plant of the family Proteaceae native to eastern New South Wales and south-eastern Queensland in Australia. It is a small prickly-leaved shrub from 0.2 to 3 m (8 in to 10 ft) high, generally growing on clay-based or alluvial soils in eucalypt woodland. Scottish botanist Robert Brown described G. juniperina in 1810, and seven subspecies are recognised. The flower heads (inflorescences) appear from winter to early summer and are red, orange or yellow. Birds visit and pollinate the flowers. G. juniperina plants are killed by bushfire, regenerating afterwards from seed. The species adapts readily to cultivation and has been important in horticulture as it is the parent of many popular garden hybrids. G. j. juniperina, a subspecies restricted to western Sydney and environs, has its habitat threatened by housing development and other factors.
-    </string>
+    <string name="default_avatar_url">https://firebasestorage.googleapis.com/v0/b/androidproject-ee321.appspot.com/o/avatar_image_placeholder.png?alt=media&amp;token=fd323ff6-1bee-4227-839b-156d938f004e</string>
+    <string name="fail_blank_lines">Some Field is blank</string>
+    <string name="fail_unexpected">Something unexpected happened</string>
 </resources>
