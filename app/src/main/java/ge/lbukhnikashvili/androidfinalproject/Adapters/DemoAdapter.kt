@@ -10,11 +10,11 @@ class DemoAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == ITEM_TYPE_1) {
             ViewHolder1(
-                LayoutInflater.from(parent.context).inflate(R.layout.conversation_page_item1, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.conversation_page_item_left, parent, false)
             )
         } else {
             ViewHolder2(
-                LayoutInflater.from(parent.context).inflate(R.layout.conversation_page_item2, parent, false)
+                LayoutInflater.from(parent.context).inflate(R.layout.conversation_page_item_right, parent, false)
             )
         }
     }
@@ -46,6 +46,5 @@ class DemoAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     companion object {
         private const val ITEM_TYPE_1 = 1
         private const val ITEM_TYPE_2 = 2
-
     }
 }

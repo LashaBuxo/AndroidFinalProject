@@ -20,18 +20,17 @@ import android.view.Window
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache
 import com.nostra13.universalimageloader.core.DisplayImageOptions
 import com.nostra13.universalimageloader.core.ImageLoader
@@ -41,8 +40,12 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener
 import de.hdodenhof.circleimageview.CircleImageView
+import ge.lbukhnikashvili.androidfinalproject.Adapters.ConversationPageAdapter
+import ge.lbukhnikashvili.androidfinalproject.Adapters.MainPageAdapter
 import ge.lbukhnikashvili.androidfinalproject.Adapters.SearchPageAdapter
-import ge.lbukhnikashvili.androidfinalproject.DataClasses.User
+import ge.lbukhnikashvili.androidfinalproject.DataClasses.Conversation
+import ge.lbukhnikashvili.androidfinalproject.DataClasses.ConversationInfo
+import ge.lbukhnikashvili.androidfinalproject.DataClasses.Message
 import ge.lbukhnikashvili.androidfinalproject.DataClasses.UserInfo
 import ge.lbukhnikashvili.androidfinalproject.MVP.IMainView
 import ge.lbukhnikashvili.androidfinalproject.MVP.MainPresenter
@@ -87,12 +90,67 @@ class MainActivity : AppCompatActivity(), IMainView {
 
         presenter = MainPresenter(this)
         presenter.initPresenter(application, this)
+
+        var searchView1 = findViewById<SearchView>(R.id.users_search_view)
+        var searchView2 = findViewById<SearchView>(R.id.conversations_search_view)
+
+        searchView1.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank() || newText.length > 2) {
+                    if (newText.isNullOrBlank()) onUserSearchTextChanged("");
+                    else
+                        onUserSearchTextChanged(newText)
+                }
+                return true
+            }
+        }
+        )
+        searchView2.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank() || newText.length > 2) {
+                    if (newText.isNullOrBlank()) onConversationsSearchTextChanged("");
+                    else
+                        onConversationsSearchTextChanged(newText)
+                }
+                return true
+            }
+        }
+        )
     }
 
 
     //endregion
 
     //region UserInteraction
+    private var FirstTime: Boolean = false
+    fun onUserSearchTextChanged(text: String) {
+        if (!FirstTime) {
+            FirstTime = true;
+            return
+        }
+        var newData = filterUsersBriefDataBySearch(savedBriefInfo, text)
+        showBriefInfoData(newData)
+    }
+
+    private var FirstTime2: Boolean = false
+    fun onConversationsSearchTextChanged(text: String) {
+        if (!FirstTime2) {
+            FirstTime2 = true;
+            return
+        }
+
+        var newData = filterMainPageDataBySearch(savedMainPageData, text)
+        showMainPageData(newData)
+    }
+
     fun onClickSignUpPage(v: View) {
         showLayout(PageType.Register)
     }
@@ -101,7 +159,7 @@ class MainActivity : AppCompatActivity(), IMainView {
         showLayout(PageType.Loading)
         val currentUserData = presenter.getCurrentUserData()
 
-        findViewById<EditText>(R.id.profile_page_nickname).setText(currentUserData?.info?.name)
+        findViewById<TextView>(R.id.profile_page_nickname).setText(currentUserData?.info?.name)
         findViewById<EditText>(R.id.profile_page_profession).setText(currentUserData?.info?.profession)
 
         var listener = object : SimpleImageLoadingListener() {
@@ -124,9 +182,9 @@ class MainActivity : AppCompatActivity(), IMainView {
             }
         }
 
-        Log.e("Lasha",""+(currentUserData==null))
-        Log.e("Lasha",""+(currentUserData?.info ==null))
-        Log.e("Lasha",""+(currentUserData?.info?.image_url ==null))
+        Log.e("Lasha", "" + (currentUserData == null))
+        Log.e("Lasha", "" + (currentUserData?.info == null))
+        Log.e("Lasha", "" + (currentUserData?.info?.image_url == null))
 
         ImageLoader.getInstance().displayImage(
             currentUserData!!.info?.image_url,
@@ -144,13 +202,13 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     fun onClickMainPage(v: MenuItem): Boolean {
-        showLayout(PageType.Main)
+        prepareForOpenMainPage()
         return true
     }
 
     fun onClickUpdateProfile(v: View) {
         showLayout(PageType.Loading)
-        var newName = findViewById<EditText>(R.id.profile_page_nickname).text.toString()
+        var newName = findViewById<TextView>(R.id.profile_page_nickname).text.toString()
         var newProfession = findViewById<EditText>(R.id.profile_page_profession).text.toString()
         presenter.updateUserParameters(newName, newProfession, lastLoadedImageUri)
     }
@@ -163,6 +221,11 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     fun onClickSignOut(v: View) {
+        findViewById<EditText>(R.id.enter_page_nickname).setText("")
+        findViewById<EditText>(R.id.enter_page_password).setText("")
+        findViewById<EditText>(R.id.register_page_nickname).setText("")
+        findViewById<EditText>(R.id.register_page_password).setText("")
+        findViewById<EditText>(R.id.register_page_profession).setText("")
         presenter.logoutUser()
     }
 
@@ -183,20 +246,17 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     fun onClickSearchPageBack(v: View) {
-        showLayout(PageType.Main);
+        prepareForOpenMainPage()
     }
 
     private fun onClickSearchItem(uid: String) {
         var userBriefInfo = presenter.getUserBriefInfo(uid)
         if (userBriefInfo == null) {
-            Toast.makeText(
-                baseContext, getString(R.string.fail_unexpected),
-                Toast.LENGTH_SHORT
-            ).show()
+            showToast(getString(R.string.fail_unexpected))
             return
         }
-        findViewById<TextView>(R.id.conversation_page_name).setText(userBriefInfo.name)
-        findViewById<TextView>(R.id.conversation_page_profession).setText(userBriefInfo.profession)
+        findViewById<TextView>(R.id.conversation_page_name).text = userBriefInfo.name
+        findViewById<TextView>(R.id.conversation_page_profession).text = userBriefInfo.profession
 
         ImageLoader.getInstance().displayImage(
             userBriefInfo.image_url,
@@ -205,20 +265,27 @@ class MainActivity : AppCompatActivity(), IMainView {
             null
         );
 
-        showLayout(PageType.Conversation);
+
+        //inform presenter about conversation open
+        //and wait conversation to load
+        showLayout(PageType.Loading)
+        presenter.openUserConversation(uid)
+    }
+
+    fun onClickSendMessage(v: View) {
+        var message = findViewById<TextView>(R.id.conversation_typed_message).text.toString()
+        presenter.sentUserMessage(message)
+        findViewById<TextView>(R.id.conversation_typed_message).text = ""
     }
 
 //endregion
 
     //region Permissions
     fun isPermissionsAllowed(): Boolean {
-        return if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            false
-        } else true
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     fun askForPermissions(): Boolean {
@@ -287,6 +354,31 @@ class MainActivity : AppCompatActivity(), IMainView {
         ).show()
     }
 
+    private fun filterUsersBriefDataBySearch(
+        data: MutableList<UserInfo>,
+        text: String
+    ): MutableList<UserInfo> {
+        var newData: MutableList<UserInfo> = mutableListOf()
+        for (info in data) {
+            if (text.length < 3 || info.name!!.contains(text)) {
+                newData.add(info)
+            }
+        }
+        return newData
+    }
+
+    private fun filterMainPageDataBySearch(
+        data: MutableList<ConversationInfo>,
+        text: String
+    ): MutableList<ConversationInfo> {
+        var newData: MutableList<ConversationInfo> = mutableListOf()
+        for (info in data) {
+            if (text.length < 3 || info.toName!!.contains(text)) {
+                newData.add(info)
+            }
+        }
+        return newData
+    }
 
     //endregion
 
@@ -308,7 +400,14 @@ class MainActivity : AppCompatActivity(), IMainView {
         }
     }
 
+
+    var savedBriefInfo: MutableList<UserInfo> = mutableListOf()
     override fun usersBriefInfoReceived(data: MutableList<UserInfo>) {
+        savedBriefInfo = data
+        showBriefInfoData(savedBriefInfo)
+    }
+
+    fun showBriefInfoData(data: MutableList<UserInfo>) {
         val adapter = SearchPageAdapter(data)
         var recycler = findViewById<RecyclerView>(R.id.search_items)
         recycler.adapter = adapter
@@ -318,7 +417,43 @@ class MainActivity : AppCompatActivity(), IMainView {
         showLayout(PageType.Search)
     }
 
+    override fun userConversationUpdated(successfully: Boolean, conversation: Conversation?) {
+        Log.e("Lasha", "userConversationUpdated")
+        if (!successfully) {
+            prepareForOpenMainPage()
+            showToast(getString(R.string.fail_unexpected))
+            return
+        }
+        showLayout(PageType.Conversation)
+        val adapter = ConversationPageAdapter(conversation!!, presenter.getCurrentUserData()?.uid!!)
+        var recycler = findViewById<RecyclerView>(R.id.conversation_items)
+        recycler.adapter = adapter
+        var layoutManager = LinearLayoutManager(baseContext)
+        layoutManager.stackFromEnd = true
+        recycler.layoutManager = layoutManager
+    }
 
+
+    var savedMainPageData: MutableList<ConversationInfo> = mutableListOf()
+    override fun mainPageDataUpdated(conversationsInfo: MutableList<ConversationInfo>) {
+        savedMainPageData = conversationsInfo
+        showMainPageData(savedMainPageData)
+    }
+
+    fun showMainPageData(conversationsInfo: MutableList<ConversationInfo>) {
+        val adapter = MainPageAdapter(conversationsInfo)
+        var recycler = findViewById<RecyclerView>(R.id.conversation_thumbnail_items)
+        recycler.adapter = adapter
+        var layoutManager = LinearLayoutManager(baseContext)
+        recycler.layoutManager = layoutManager
+        adapter.onItemClick = { uid -> onClickSearchItem(uid) }
+
+        showLayout(PageType.Main)
+    }
+
+    override fun prepareForOpenMainPage() {
+        presenter.requestMainPage()
+    }
     //endregion
 
     //region Layouts Switching

@@ -8,7 +8,7 @@ import com.google.firebase.database.IgnoreExtraProperties
 data class User(
     var uid: String? = "",
     var info: UserInfo? =UserInfo("user","default",""),
-    var conversations: MutableList<Conversation> = mutableListOf()
+    var conversations: MutableMap<String,Conversation> = HashMap()
 ) {
 
     @Exclude

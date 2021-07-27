@@ -5,14 +5,12 @@ import com.google.firebase.database.IgnoreExtraProperties
 
 @IgnoreExtraProperties
 data class Conversation(
-    var targetuid: String? = "",
-    var messages: MutableList<Message> =mutableListOf()
+    var messages: MutableMap<String,Message> = HashMap()
 ) {
 
     @Exclude
     fun toMap(): Map<String, Any?> {
         return mapOf(
-            "targetuid" to targetuid,
             "messages" to messages,
         )
     }

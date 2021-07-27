@@ -72,7 +72,8 @@
         app:layout_constraintBottom_toTopOf="@id/message_bar"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_constraintTop_toBottomOf="@id/conversation_header" />
+        app:layout_constraintTop_toBottomOf="@id/conversation_header"
+        />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/message_bar"
@@ -97,6 +98,7 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/conversation_send_icon"
+            android:onClick="onClickSendMessage"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:paddingRight="15dp"

@@ -3,12 +3,7 @@ package ge.lbukhnikashvili.androidfinalproject.MVP
 import android.app.Application
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.ktx.Firebase
-import ge.lbukhnikashvili.androidfinalproject.DataClasses.User
-import ge.lbukhnikashvili.androidfinalproject.DataClasses.UserInfo
+import ge.lbukhnikashvili.androidfinalproject.DataClasses.*
 import ge.lbukhnikashvili.androidfinalproject.MainActivity
 import ge.lbukhnikashvili.androidfinalproject.MainActivity.PageType
 import ge.lbukhnikashvili.androidfinalproject.R
@@ -55,7 +50,7 @@ class MainPresenter(var view: IMainView?) : IMainPresenter {
         return interactor.currentUserData
     }
 
-    fun getUserBriefInfo(uid: String): UserInfo? {
+    override fun getUserBriefInfo(uid: String): UserInfo? {
         if (interactor.usersBriefInfo == null) {
             view?.showToast(activity.getString(R.string.fail_unexpected))
             //logoutUser()
@@ -70,6 +65,13 @@ class MainPresenter(var view: IMainView?) : IMainPresenter {
         return null
     }
 
+    //waiting loading first conversation
+    fun openUserConversation(uid: String){
+        interactor.listenToUserConversation(uid)
+    }
+    fun sentUserMessage(message: String){
+        interactor.sentUserMessage(message)
+    }
 
     fun updateUserParameters(newName: String, newProfession: String, uploadedImageUri: Uri?) {
         interactor.updateUserParameters(newName, newProfession, uploadedImageUri)
@@ -78,12 +80,17 @@ class MainPresenter(var view: IMainView?) : IMainPresenter {
     fun requestUsersBriefInfo() {
         interactor.requestUsersBriefInfo()
     }
+
+    fun requestMainPage(){
+        interactor.requestMainPage()
+    }
+
     //endregion
 
     //region Callbacks
     override fun onUserStartedApp(isLoggedIn: Boolean) {
         if (isLoggedIn) {
-            view?.showLayout(PageType.Main)
+            view?.prepareForOpenMainPage()
             Log.e("Lasha", "User is Signed IN!")
         } else {
             view?.showLayout(PageType.Enter)
@@ -103,6 +110,15 @@ class MainPresenter(var view: IMainView?) : IMainPresenter {
                 view?.showToast("Authenticate Failed. $failReason")
             }
         }
+    }
+
+    override fun userConversationUpdated(successfully: Boolean, conversation: Conversation?){
+        view?.userConversationUpdated(successfully,conversation)
+    }
+
+
+    override fun mainPageDataUpdated(conversationsInfo: MutableList<ConversationInfo>) {
+        view?.mainPageDataUpdated(conversationsInfo)
     }
 
     override fun retrievedUsersBriefInfo(usersBriefInfo: MutableList<UserInfo>) {
